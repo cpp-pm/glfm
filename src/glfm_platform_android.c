@@ -19,6 +19,7 @@
  */
 
 #include "glfm.h"
+#include "glfm_export.hpp"
 
 #ifdef GLFM_PLATFORM_ANDROID
 
@@ -41,8 +42,8 @@
 #define LOG_DEBUG(...) __android_log_print(ANDROID_LOG_INFO, "GLFM", __VA_ARGS__)
 #endif
 
-//#define LOG_LIFECYCLE(...) __android_log_print(ANDROID_LOG_INFO, "GLFM", __VA_ARGS__)
-#define LOG_LIFECYCLE(...) do { } while (0)
+#define LOG_LIFECYCLE(...) __android_log_print(ANDROID_LOG_INFO, "GLFM", __VA_ARGS__)
+//#define LOG_LIFECYCLE(...) do { } while (0)
 
 // Available in eglext.h in API 18
 #define EGL_CONTEXT_MAJOR_VERSION_KHR 0x3098
@@ -835,6 +836,7 @@ static int32_t app_input_callback(struct android_app *app, AInputEvent *event) {
 
 // MARK: Main entry point
 
+GLFM_EXPORT
 void android_main(struct android_app *app) {
     // Make sure glue isn't stripped
     app_dummy();
@@ -934,6 +936,7 @@ void android_main(struct android_app *app) {
 
 // MARK: GLFM implementation
 
+GLFM_EXPORT
 void glfmSetUserInterfaceOrientation(GLFMDisplay *display,
                                      GLFMUserInterfaceOrientation allowedOrientations) {
     if (display->allowedOrientations != allowedOrientations) {
@@ -943,48 +946,57 @@ void glfmSetUserInterfaceOrientation(GLFMDisplay *display,
     }
 }
 
+GLFM_EXPORT
 int glfmGetDisplayWidth(GLFMDisplay *display) {
     Engine *engine = (Engine *)display->platformData;
     return engine->width;
 }
 
+GLFM_EXPORT
 int glfmGetDisplayHeight(GLFMDisplay *display) {
     Engine *engine = (Engine *)display->platformData;
     return engine->height;
 }
 
+GLFM_EXPORT
 double glfmGetDisplayScale(GLFMDisplay *display) {
     Engine *engine = (Engine *)display->platformData;
     return engine->scale;
 }
 
+GLFM_EXPORT
 GLFMRenderingAPI glfmGetRenderingAPI(GLFMDisplay *display) {
     Engine *engine = (Engine *)display->platformData;
     return engine->renderingAPI;
 }
 
+GLFM_EXPORT
 bool glfmHasTouch(GLFMDisplay *display) {
     (void)display;
     // This will need to change, for say, TV apps
     return true;
 }
 
+GLFM_EXPORT
 void glfmSetMouseCursor(GLFMDisplay *display, GLFMMouseCursor mouseCursor) {
     (void)display;
     (void)mouseCursor;
     // Do nothing
 }
 
+GLFM_EXPORT
 void glfmSetMultitouchEnabled(GLFMDisplay *display, bool multitouchEnabled) {
     Engine *engine = (Engine *)display->platformData;
     engine->multitouchEnabled = multitouchEnabled;
 }
 
+GLFM_EXPORT
 bool glfmGetMultitouchEnabled(GLFMDisplay *display) {
     Engine *engine = (Engine *)display->platformData;
     return engine->multitouchEnabled;
 }
 
+GLFM_EXPORT
 const char *glfmGetLanguageInternal() {
     char *lang = NULL;
 
@@ -1059,6 +1071,7 @@ jnifail:
     return lang;
 }
 
+GLFM_EXPORT
 GLFMProc glfmGetProcAddress(const char *functionName) {
     GLFMProc function = eglGetProcAddress(functionName);
     if (!function) {
@@ -1106,6 +1119,7 @@ static int glfm_android_close(void *cookie) {
     return 0;
 }
 
+GLFM_EXPORT
 FILE *glfm_android_fopen(const char *filename, const char *mode) {
     AAssetManager *assetManager = NULL;
     if (engineGlobal && engineGlobal->app && engineGlobal->app->activity) {
@@ -1125,6 +1139,7 @@ FILE *glfm_android_fopen(const char *filename, const char *mode) {
 
 // MARK: stdout helpers
 
+GLFM_EXPORT
 int glfm_android_printf(const char *format, ...) {
     va_list args;
     va_start(args, format);
