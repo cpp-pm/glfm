@@ -50,6 +50,12 @@ elseif (CMAKE_C_COMPILER_ID MATCHES "MSVC")
 endif()
 
 if (CMAKE_SYSTEM_NAME MATCHES "Android")
+
+    include (GenerateExportHeader)
+    generate_export_header(glfm)
+    set(glfm_export_header "${CMAKE_CURRENT_BINARY_DIR}/src/glfm_export.hpp")
+    generate_export_header(glfm EXPORT_FILE_NAME "${glfm_export_header}")    
+    
     find_library(log-lib log)
     find_library(android-lib android)
     find_library(EGL-lib EGL)
@@ -58,7 +64,9 @@ if (CMAKE_SYSTEM_NAME MATCHES "Android")
     target_include_directories(glfm
       PRIVATE
       "$<BUILD_INTERFACE:${ANDROID_NDK}/sources/android/native_app_glue>"
+      "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>"
       )
+    
 elseif (IOS)
     target_link_libraries(glfm "-framework Foundation -framework CoreGraphics -framework UIKit -framework OpenGLES -framework QuartzCore")
     set_target_properties(glfm PROPERTIES
