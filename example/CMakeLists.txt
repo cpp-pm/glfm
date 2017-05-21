@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.6.0) # Might run on earlier versions. Probably 
 link_libraries(glfm)
 
 # Example code
-set(APP_TARGET_NAME glfm_example) # Generated APK can't have a "-"
+set(APP_TARGET_NAME glfmexample) # Generated APK can't have a "-"
 set(APP_ORGANIZATION_IDENTIFIER "com.brackeen")
 set(APP_VERSION "1.0")
 set(APP_VERSION_ITERATION 1)
