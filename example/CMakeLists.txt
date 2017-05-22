@@ -58,15 +58,15 @@ elseif (CMAKE_SYSTEM_NAME MATCHES "Android")
     include(AndroidNdkModules) # android_ndk_import_module_native_app_glue
 
     android_ndk_import_module_native_app_glue() # native_app_glue
-
-    #add_library(${APP_TARGET_NAME} SHARED android_main.cpp)
     target_compile_definitions(${APP_TARGET_NAME} PUBLIC "ANDROID_APP_NAME=\"GlfmExample\"")
     target_link_libraries(${APP_TARGET_NAME} log android native_app_glue) # redundant?
 
     android_create_apk(
-      BASE_TARGET ${APP_TARGET_NAME}
+      BASE_TARGET "${APP_TARGET_NAME}"
       LAUNCH_TARGET launch-GlfmExample
       DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/apk"
+      ASSETS "${PROJECT_SOURCE_DIR}/example/assets/*"
+      DATA_DIRECTORY "."
       )
     #:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#    
     
