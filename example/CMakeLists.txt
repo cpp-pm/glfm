@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.6.0) # Might run on earlier versions. Probably 
 link_libraries(glfm)
 
 # Example code
-set(APP_TARGET_NAME glfm-example)
+set(APP_TARGET_NAME glfmexample) # Generated APK can't have a "-"
 set(APP_ORGANIZATION_IDENTIFIER "com.brackeen")
 set(APP_VERSION "1.0")
 set(APP_VERSION_ITERATION 1)
@@ -39,6 +39,37 @@ if (CMAKE_SYSTEM_NAME MATCHES "Emscripten")
 elseif (CMAKE_SYSTEM_NAME MATCHES "Android")
     add_library(${APP_TARGET_NAME} SHARED ${APP_SRC})
     target_link_libraries(${APP_TARGET_NAME} glfm)
+
+    #:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#
+    # * https://github.com/ruslo/hunter/wiki/pkg.android.apk
+    hunter_add_package(Android-Apk)
+    list(APPEND CMAKE_MODULE_PATH "${ANDROID-APK_ROOT}")
+    include(AndroidApk) # android_create_apk
+
+    hunter_add_package(Android-SDK)
+    message("Path to `android`: ${ANDROID-SDK_ROOT}/android-sdk/tools/android")
+    message("Path to `emulator`: ${ANDROID-SDK_ROOT}/android-sdk/tools/emulator")
+    message("Path to `adb`: ${ANDROID-SDK_ROOT}/android-sdk/platform-tools/adb")
+
+    # * https://github.com/ruslo/hunter/wiki/pkg.android.modules
+    # * https://github.com/hunter-packages/android-cmake
+    hunter_add_package(Android-Modules)
+    list(APPEND CMAKE_MODULE_PATH "${ANDROID-MODULES_ROOT}")
+    include(AndroidNdkModules) # android_ndk_import_module_native_app_glue
+
+    android_ndk_import_module_native_app_glue() # native_app_glue
+    target_compile_definitions(${APP_TARGET_NAME} PUBLIC "ANDROID_APP_NAME=\"GlfmExample\"")
+    target_link_libraries(${APP_TARGET_NAME} log android native_app_glue) # redundant?
+
+    android_create_apk(
+      BASE_TARGET "${APP_TARGET_NAME}"
+      LAUNCH_TARGET launch-GlfmExample
+      DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/apk"
+      ASSETS "${PROJECT_SOURCE_DIR}/example/assets/*"
+      DATA_DIRECTORY "."
+      )
+    #:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#    
+    
 else()
     # iOS. If you change this section, test archiving too.
     set(CMAKE_MACOSX_BUNDLE YES)
@@ -146,3 +177,5 @@ else()
         "</plist>\n"
     )
 endif()
+
+install(TARGETS ${APP_TARGET_NAME} DESTINATION bin)

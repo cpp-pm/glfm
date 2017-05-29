@@ -1,8 +1,18 @@
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 3.0.0)
 
-project(GLFM C)
+# * https://github.com/hunter-packages/gate
+# * https://github.com/ruslo/hunter
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/HunterGate.cmake")
+
+HunterGate(
+    URL "https://github.com/ruslo/hunter/archive/v0.18.57.tar.gz"
+    SHA1 "435b09a4eec7fd58486bfb61efb1044ddb85c0f0"
+)
+
+project(GLFM VERSION 1.0.0)
 
 option(GLFM_BUILD_EXAMPLE "Build the GLFM example" OFF)
+option(GLFM_INSTALL "Install the targets" ON)
 
 set(GLFM_HEADERS include/glfm.h)
 
@@ -20,8 +30,13 @@ else() # Assume iOS
 endif()
 
 add_library(glfm ${GLFM_SRC} ${GLFM_HEADERS})
-target_include_directories(glfm PUBLIC include)
-target_include_directories(glfm PRIVATE src)
+
+target_include_directories(glfm
+  PUBLIC
+  "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+  PRIVATE
+  "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"  
+)
 
 source_group(include FILES ${GLFM_HEADERS})
 source_group(src FILES ${GLFM_SRC})
@@ -35,12 +50,23 @@ elseif (CMAKE_C_COMPILER_ID MATCHES "MSVC")
 endif()
 
 if (CMAKE_SYSTEM_NAME MATCHES "Android")
+
+    include (GenerateExportHeader)
+    generate_export_header(glfm)
+    set(glfm_export_header "${CMAKE_CURRENT_BINARY_DIR}/src/glfm_export.hpp")
+    generate_export_header(glfm EXPORT_FILE_NAME "${glfm_export_header}")    
+    
     find_library(log-lib log)
     find_library(android-lib android)
     find_library(EGL-lib EGL)
     find_library(GLESv2-lib GLESv2)
     target_link_libraries(glfm ${log-lib} ${android-lib} ${EGL-lib} ${GLESv2-lib})
-    target_include_directories(glfm PRIVATE ${ANDROID_NDK}/sources/android/native_app_glue/)
+    target_include_directories(glfm
+      PRIVATE
+      "$<BUILD_INTERFACE:${ANDROID_NDK}/sources/android/native_app_glue>"
+      "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>"
+      )
+    
 elseif (IOS)
     target_link_libraries(glfm "-framework Foundation -framework CoreGraphics -framework UIKit -framework OpenGLES -framework QuartzCore")
     set_target_properties(glfm PROPERTIES
@@ -51,5 +77,60 @@ elseif (IOS)
 endif()
 
 if (GLFM_BUILD_EXAMPLE)
-    add_subdirectory(example)
+  add_subdirectory(example)
 endif()
+
+###############
+### Install ###
+###############
+
+if(NOT GLFM_INSTALL)
+  return()
+endif()
+
+### Install ###
+set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
+
+set(config_install_dir "lib/cmake/${PROJECT_NAME}")
+set(include_install_dir "include")
+set(version_config "${generated_dir}/${PROJECT_NAME}ConfigVersion.cmake")
+set(project_config "${generated_dir}/${PROJECT_NAME}Config.cmake")
+set(targets_export_name "${PROJECT_NAME}Targets")
+set(namespace "${PROJECT_NAME}::")
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "${version_config}" COMPATIBILITY SameMajorVersion
+)
+
+# Note: use 'targets_export_name'
+configure_package_config_file(
+    "${PROJECT_SOURCE_DIR}/cmake/Config.cmake.in"
+    "${project_config}"
+     INSTALL_DESTINATION "${config_install_dir}"
+)
+
+install(
+    TARGETS glfm
+    EXPORT "${targets_export_name}"
+    LIBRARY DESTINATION "lib"
+    ARCHIVE DESTINATION "lib"
+    RUNTIME DESTINATION "bin"
+    INCLUDES DESTINATION "${include_install_dir}"
+)
+
+install(
+    FILES ${GLFM_HEADERS}
+    DESTINATION "${include_install_dir}"
+)
+
+install(
+  FILES "${project_config}" "${version_config}"
+  DESTINATION "${config_install_dir}"
+  )
+
+install(
+  EXPORT "${targets_export_name}"
+  NAMESPACE "${namespace}"
+  DESTINATION "${config_install_dir}"
+  )
