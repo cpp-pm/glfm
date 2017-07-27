@@ -5,8 +5,8 @@ cmake_minimum_required(VERSION 3.0.0)
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/HunterGate.cmake")
 
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.18.57.tar.gz"
-    SHA1 "435b09a4eec7fd58486bfb61efb1044ddb85c0f0"
+    URL "https://github.com/ruslo/hunter/archive/v0.19.51.tar.gz"
+    SHA1 "d238dc1dd4db83e45a592f96fdb95d17c688600a"
 )
 
 project(GLFM VERSION 1.0.0)
