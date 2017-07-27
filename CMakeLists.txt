@@ -35,7 +35,7 @@ target_include_directories(glfm
   PUBLIC
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   PRIVATE
-  "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"  
+  "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
 )
 
 source_group(include FILES ${GLFM_HEADERS})
@@ -54,21 +54,36 @@ if (CMAKE_SYSTEM_NAME MATCHES "Android")
     include (GenerateExportHeader)
     generate_export_header(glfm)
     set(glfm_export_header "${CMAKE_CURRENT_BINARY_DIR}/src/glfm_export.hpp")
-    generate_export_header(glfm EXPORT_FILE_NAME "${glfm_export_header}")    
-    
-    find_library(log-lib log)
-    find_library(android-lib android)
-    find_library(EGL-lib EGL)
-    find_library(GLESv2-lib GLESv2)
-    target_link_libraries(glfm ${log-lib} ${android-lib} ${EGL-lib} ${GLESv2-lib})
+    generate_export_header(glfm EXPORT_FILE_NAME "${glfm_export_header}")
+
+    find_package(android_log REQUIRED)
+    find_package(android REQUIRED)
+    find_package(egl REQUIRED)
+    find_package(gles2 REQUIRED)
+
+    target_link_libraries(glfm PUBLIC android_log::android_log android::android egl::egl gles2::gles2)
     target_include_directories(glfm
       PRIVATE
       "$<BUILD_INTERFACE:${ANDROID_NDK}/sources/android/native_app_glue>"
       "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>"
       )
-    
+
 elseif (IOS)
-    target_link_libraries(glfm "-framework Foundation -framework CoreGraphics -framework UIKit -framework OpenGLES -framework QuartzCore")
+    find_package(foundation REQUIRED)
+    find_package(coregraphics REQUIRED)
+    find_package(uikit REQUIRED)
+    find_package(opengles REQUIRED)
+    find_package(quartzcore REQUIRED)
+
+    target_link_libraries(
+        glfw
+        PUBLIC
+        foundation::foundation
+        coregraphics::coregraphics
+        uikit::uikit
+        opengles::opengles
+        quartzcore::quartzcore
+    )
     set_target_properties(glfm PROPERTIES
         ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/GLFM.build/lib # For Archiving
         XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 8.0
